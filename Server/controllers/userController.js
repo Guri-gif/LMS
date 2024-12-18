@@ -1,5 +1,6 @@
 import User from "../models/userModels.js";
 import AppError from "../utilities/errorUtil.js";
+import cloudinary from 'cloudinary'
 
 const cookieOptions = {
   maxAge: 7 * 24 * 60 * 30 * 1000, // 7 days login
@@ -37,6 +38,28 @@ const register = async (req, res, next) => {
       return next(
         new AppError(`User registration failed, please try again`, 400)
       );
+    }
+
+    if(req.file){
+      try {
+        const result = await cloudinary.v2.uploader.upload(req.file.path,{
+          folder: 'lms',
+          width: 250,
+          height: 250,
+          gravity: 'faces',
+          crop: 'fill'
+        })
+
+        if(result){
+          user.avatar.public_id = result.public_id
+          user.avatar.secure_url = result.secure_url
+
+          // Deleting from local storage
+          fs.rm(`uploads/${req.file.filename}`)
+        }
+      } catch (e) {
+        return next (new AppError(error || 'Failed to add file',500))
+      }
     }
 
     await user.save();
