@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import crypto from 'crypto'
+import crypto from "crypto";
 
 const userSchema = new Schema(
   {
@@ -25,15 +25,16 @@ const userSchema = new Schema(
       ],
     },
     password: {
-      type: `String`,
-      required: [true, `Password is required`],
-      minLength: [8, "Password must atleast 8 character long"],
+      type: String,
+      required: [true, "Password is required"],
+      minLength: [8, "Password must be at least 8 characters long"],
       select: false,
       match: [
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-        `Please enter a valid password`,
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/,
+        "Please enter a valid password with at least one letter and one number",
       ],
     },
+
     avatar: {
       public_id: {
         type: `String`,
@@ -65,6 +66,10 @@ userSchema.pre(`save`, async function (next) {
 
 userSchema.methods = {
   generateJWTToken: async function () {
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined in environment variables");
+    }
+
     return await jwt.sign(
       {
         id: this.id,
@@ -74,19 +79,19 @@ userSchema.methods = {
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: process.env.JWT_EXPIRY,
+        expiresIn: process.env.JWT_EXPIRY || "7d",
       }
     );
   },
   comparePassword: async function (plainTextPassword) {
-    return await bycrypt.compare(plainTextPassword, this.password);
+    return await bcrypt.compare(plainTextPassword, this.password);
   },
 
   generatePasswordResetToken: async function () {
     const resetToken = crypto.randomBytes(20).toString("hex");
 
     this.forgotPasswordToken = crypto
-      .createHash("shah256")
+      .createHash("sha256")
       .update(resetToken)
       .digest("hex");
 
