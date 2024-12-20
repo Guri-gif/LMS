@@ -90,7 +90,7 @@ const register = async (req, res, next) => {
   }
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -102,8 +102,14 @@ const login = async (req, res) => {
       email,
     }).select("+password");
 
-    if (!user || !user.comparePassword(password)) {
-      return next(new AppError(`Email pr password doesn't match`, 400));
+    if (!user) {
+      return next(new AppError(`Email or password doesn't match`, 400));
+    }
+
+    // Await the result of comparePassword
+    const isPasswordCorrect = await user.comparePassword(password);
+    if (!isPasswordCorrect) {
+      return next(new AppError(`Email or password doesn't match`, 400));
     }
 
     const token = await user.generateJWTToken();
@@ -112,8 +118,9 @@ const login = async (req, res) => {
     res.cookie(`token`, token, cookieOptions);
 
     res.status(200).json({
-      succes: true,
-      message: `user logged In successfully`,
+      success: true,
+      token: token,
+      message: `User logged in successfully`,
       user,
     });
   } catch (error) {
@@ -282,12 +289,12 @@ const updateUser = async () => {
       return next(new AppError(error || "Failed to add file", 500));
     }
   }
-  await user.save()
+  await user.save();
 
   res.status(200).json({
     success: true,
-    message: "User updated Successfully"
-  })
+    message: "User updated Successfully",
+  });
 };
 
 export {

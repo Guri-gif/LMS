@@ -11,15 +11,15 @@ import {
 } from "../controllers/userController.js";
 import { isLoggedIn } from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/multerMiddleware.js";
-const router = Router();
+const userRouter = Router();
 
-router.post(`/register`,upload.single('avatar'), register);
-router.post(`/login`, login);
-router.get(`/logout`, logout);
-router.get(`/me`, isLoggedIn, getProfile);
-router.post(`/reset`, forgot)
-router.post(`/reset/:resetToken`, reset)
-router.post(`/change-password`, isLoggedIn, changePassword)
-router.put('/update', isLoggedIn, upload.single('avatar'), updateUser)
+userRouter.post(`/register`,upload.single('avatar'), register);
+userRouter.post(`/login`, login);
+userRouter.get(`/logout`, logout);
+userRouter.get(`/me`, isLoggedIn, getProfile);
+userRouter.post(`/reset`, forgot)
+userRouter.post(`/reset/:resetToken`, reset)
+userRouter.post(`/change-password`, isLoggedIn, changePassword)
+userRouter.put('/update', isLoggedIn, upload.single('avatar'), updateUser)
 
-export default router;
+export default userRouter;

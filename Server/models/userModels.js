@@ -57,11 +57,17 @@ const userSchema = new Schema(
   }
 );
 
-userSchema.pre(`save`, async function (next) {
-  if (!this.isModified(`password`)) {
-    return next();
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    return next(); // Proceed if password is not modified
   }
-  this.password = await bcrypt.hash(this.password, 10);
+  try {
+    // Hash the password before saving
+    this.password = await bcrypt.hash(this.password, 10);
+    next(); // Proceed with saving the user
+  } catch (error) {
+    next(error); // Pass error to the next middleware (error handling)
+  }
 });
 
 userSchema.methods = {
@@ -83,8 +89,8 @@ userSchema.methods = {
       }
     );
   },
-  comparePassword: async function (plainTextPassword) {
-    return await bcrypt.compare(plainTextPassword, this.password);
+  comparePassword: function (plainTextPassword) {
+    return bcrypt.compare(plainTextPassword, this.password);
   },
 
   generatePasswordResetToken: async function () {

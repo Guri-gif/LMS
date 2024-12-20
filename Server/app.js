@@ -3,8 +3,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { config } from "dotenv";
 import morgan from "morgan";
-import router from "./routes/userRoutes.js";
 import errorMiddleware from "./middlewares/errorMiddleware.js";
+import userRouter from "./routes/userRoutes.js";
+import courseRouter from "./routes/courseRouter.js";
 config();
 
 const app = express();
@@ -21,11 +22,8 @@ app.use(
 app.use(cookieParser());
 app.use(morgan(`dev`));
 
-app.use("/ping", (req, res) => {
-  res.json({ message: "pong" });
-});
-
-app.use(`/api/v1/user`, router)
+app.use(`/api/v1/user`, userRouter)
+app.use(`/api/v1/courses`, courseRouter)
 
 app.all("*", (req, res) => {
   res.status(404).json({ error: "OOPS! 404 page not found" });
